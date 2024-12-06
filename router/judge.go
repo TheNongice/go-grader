@@ -26,8 +26,9 @@ type BodyIsolate struct {
 }
 
 type BodyJudgeRunner struct {
-	BoxId   int `json:"box_id" form:"box_id"`
-	QuestID int `json:"question_id" form:"question_id"`
+	BoxId       int    `json:"box_id" form:"box_id"`
+	QuestID     int    `json:"question_id" form:"question_id"`
+	CodeContent string `json:"code" form:"code"`
 }
 
 func JudgeService(router fiber.Router) {
@@ -37,6 +38,16 @@ func JudgeService(router fiber.Router) {
 		if err := c.BodyParser(&p); err != nil {
 			return err
 		}
+
+		if p.CodeContent != "test" {
+			if !utility.CompileCode(p.BoxId, p.CodeContent) {
+				return c.JSON(ResultJudge{
+					Status: false,
+					Note:   "Complication Error",
+				})
+			}
+		}
+
 		status, score, full_score, note := utility.RunnerIsolate(p.BoxId, p.QuestID)
 		return c.JSON(ResultJudge{
 			Status:    status,

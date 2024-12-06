@@ -5,6 +5,7 @@ import (
 
 	"github.com/TheNongice/go-grader/router"
 	"github.com/gofiber/fiber/v2"
+	"github.com/joho/godotenv"
 )
 
 func introProg() {
@@ -26,6 +27,10 @@ func introProg() {
 
 func main() {
 	introProg()
+	env := godotenv.Load()
+	if env != nil {
+		fmt.Println("Error loading .env file")
+	}
 	app := fiber.New()
 
 	app.Get("/", func(c *fiber.Ctx) error {

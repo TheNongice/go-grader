@@ -1,4 +1,4 @@
-# Simple Code Judgeing
+# Simple Code Judging
 A code judging system is made from GoLang. This system is made for using with C/C++ programing languages.
 Currently, This system is in prototype for using to learn how to create automation code judging system only.
 
@@ -15,7 +15,12 @@ This program currently in alpha. I'm not make auto-install script untill it's in
 (Manual Setup)
 1) Install GoLang (Version 1.23.x)
 2) Install Isolate ([MANUAL INSTALL](https://www.ucw.cz/moe/isolate.1.html#_installation))
-3) Config your directory from my code in `utility/isolate_runner.go`
+3) Setup `go-grader` in .env with these example!
+```env
+ISOLATE_PATH=/var/local/lib/isolate/
+DIR_GRADER_PATH=/home/YOUR_USER/go_grader/
+# Please don't forget / (black-slash).
+```
 3) Let's start! (with many bug!)
 
 # Cautions

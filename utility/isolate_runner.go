@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"os/exec"
 	"strings"
@@ -19,8 +20,9 @@ const (
 func LookUpMeta(isolateID int) (int, string) {
 	err_status := ""
 	found_ele := false
-	dat, err := os.Open(fmt.Sprintf("/home/YOUR_USER/go_grader/runner/isolate_logs/%d/meta-log.txt", isolateID))
+	dat, err := os.Open(fmt.Sprintf("%srunner/isolate_logs/%d/meta-log.txt", os.Getenv("DIR_GRADER_PATH"), isolateID))
 	if err != nil {
+		// panic(err)
 		return -99, "LOGS_PATH_NOT_EXIST"
 	}
 	contentScanner := bufio.NewScanner(dat)
@@ -36,7 +38,7 @@ func LookUpMeta(isolateID int) (int, string) {
 	if found_ele {
 		if err_status == "TO" {
 			return TIMEOUT, "TIME_OUT"
-		} else if err_status == "SG" {
+		} else if err_status == "SG" || err_status == "RE" {
 			return DIE, "DIE"
 		} else if err_status == "XX" {
 			return SYS_DIE, "Internal Error"
@@ -57,7 +59,7 @@ func InitalIsolate(isolateID int) int {
 
 	// Make logs directory
 	cmd_makeLog := exec.Command("mkdir",
-		fmt.Sprintf("/home/YOUR_USER/go_grader/runner/isolate_logs/%d/", isolateID),
+		fmt.Sprintf("%srunner/isolate_logs/%d/", os.Getenv("DIR_GRADER_PATH"), isolateID),
 	)
 
 	err := cmd.Run()
@@ -66,9 +68,8 @@ func InitalIsolate(isolateID int) int {
 		fmt.Println("ISOLATE DIED! :: Please try again later!")
 		return 1
 	}
-
 	if err_makeLog != nil {
-		// TODO: Change new
+		// TODO: Change new text
 		fmt.Println("WRONG CONFIG! :: Please check your config!")
 		return 1
 	}
@@ -79,13 +80,48 @@ func InitalIsolate(isolateID int) int {
 
 func VerifyResult(questID int, testcaseNo int, output string) bool {
 	// Lookup output file
-	dat, err := os.ReadFile(fmt.Sprintf("/home/YOUR_USER/go_grader/problem/%d/%d.out", questID, testcaseNo))
+	dat, err := os.ReadFile(fmt.Sprintf("%sproblem/%d/%d.out", os.Getenv("DIR_GRADER_PATH"), questID, testcaseNo))
 	if err != nil {
 		panic(err)
 	}
-
-	// TODO: Work in progess manage string
+	fmt.Println("file out: ", string(dat))
+	// TODO: Work in progress for manage string
 	return string(dat) == output
+}
+
+func CompileCode(isolateID int, codeContent string) bool {
+	tempID := rand.IntN(100)
+	file, err := os.Create(fmt.Sprintf("./runner/temp_code/main%d.cpp", tempID))
+	file.Write([]byte(codeContent))
+
+	if err != nil {
+		fmt.Println("Error with create file!")
+	}
+
+	cmd := exec.Command("g++",
+		fmt.Sprintf("./runner/temp_code/main%d.cpp", tempID),
+		"-o",
+		fmt.Sprintf("./runner/temp_code/output/out%d.a", tempID),
+	)
+	fmt.Println("Command is: ", cmd.Args)
+	err_compile := cmd.Run()
+
+	cmd_copy := exec.Command("cp",
+		fmt.Sprintf("./runner/temp_code/output/out%d.a", tempID),
+		fmt.Sprintf("%s/%d/box/out.a", os.Getenv("ISOLATE_PATH"), isolateID),
+	)
+
+	err_copy := cmd_copy.Run()
+
+	if err_compile != nil || err_copy != nil {
+		fmt.Println("Error! Can't compile")
+		defer file.Close()
+		return false
+	}
+
+	defer file.Close()
+
+	return true
 }
 
 func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
@@ -93,6 +129,7 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
 	var note string = ""
 	var stats bool = true
 	var getScore int = 0
+	// TODO: Work in progress for change to custommize amount testcase
 	for i := 1; i <= 3; i++ {
 		cmd := exec.Command("isolate",
 			"--run",
@@ -100,12 +137,12 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
 			"--time=1",
 			"--mem=65536",
 			"--processes=1",
-			fmt.Sprintf("--dir=/home/YOUR_USER/go_grader/problem/%d/:rw", questID),
-			fmt.Sprintf("--stdin=/home/YOUR_USER/go_grader/problem/%d/%d.in", questID, i),
-			fmt.Sprintf("--meta=/home/YOUR_USER/go_grader/runner/isolate_logs/%d/meta-log.txt", isolateID),
+			fmt.Sprintf("--dir=%sproblem/%d/:rw", os.Getenv("DIR_GRADER_PATH"), questID),
+			fmt.Sprintf("--stdin=%sproblem/%d/%d.in", os.Getenv("DIR_GRADER_PATH"), questID, i),
+			fmt.Sprintf("--meta=%srunner/isolate_logs/%d/meta-log.txt", os.Getenv("DIR_GRADER_PATH"), isolateID),
 			"./out.a",
 		)
-
+		
 		var stdout, stderr bytes.Buffer
 		cmd.Stdout = &stdout
 		cmd.Stderr = &stderr
@@ -136,5 +173,6 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
 			}
 		}
 	}
+
 	return stats, getScore, 3, note
 }
