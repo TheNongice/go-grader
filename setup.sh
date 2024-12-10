@@ -15,8 +15,14 @@ echo -e "\e[31m\e[1m
 
 git clone https://github.com/TheNongice/go-grader ~/go-grader
 echo -e "\n"
+
 cd ~/go-grader
 rm -rf .git
+mkdir problem
+mkdir runner
+mkdir runner/isolate_logs
+mkdir runner/temp_code
+mkdir runner/temp_code/output
 
 CURRENT_DIR=$(pwd)
 echo -e "\e[92m[WIZARD]\e[0m Now we're woking at: \e[92m$CURRENT_DIR\e[0m"
@@ -39,6 +45,4 @@ read ISOLATE_PATH
 
 echo "ISOLATE_PATH=$ISOLATE_PATH" >> .env
 
-echo -e "\e[92mCongratulations! This Script is install succesfully! ;)\e[0m"
-# ISOLATE_PATH=/var/local/lib/isolate/
-# DIR_GRADER_PATH=/home/ngixx/Desktop/go_grader/
+echo -e "\e[92mCongratulations! This Script is install succesfully! ;)\e[0m\n"

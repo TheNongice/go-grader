@@ -21,7 +21,27 @@ ISOLATE_PATH=/var/local/lib/isolate/
 DIR_GRADER_PATH=/home/YOUR_USER/go_grader/
 # Please don't forget / (black-slash).
 ```
-3) Let's start! (with many bug!)
+4) You can create problem testcase following this method:
+ - Make new directory as `./problem/<problem_id>/`
+ - Make output and input file as:
+  - Input use `<number_testcase>.int`
+  - Output use `<number_testcase>.out`
+ - Make a description of problem as `desc.json` with these content:
+```json
+{
+    "problem_title": "Problem_Name",
+    "max_time": 1,
+    "max_memory": 65536,
+    "amount_testcase": 3
+}
+``` 
+If you can't imagine what's you should to make them, You can use this picture as reference.
+
+![Sample Folder Structure to add new problem list](https://ngixx.in.th/img/sample_go-grader.png)
+
+_Note: max_time and max_memory are used seconds and kilobytes (kB)_
+
+5) Let's start! *(with many bug!)*
 
 # Cautions
 This programs is in testing. It support for Debian.

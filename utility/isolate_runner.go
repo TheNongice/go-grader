@@ -1,13 +1,12 @@
 package utility
 
 import (
-	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"os/exec"
-	"strings"
 )
 
 const (
@@ -16,39 +15,6 @@ const (
 	DIE     = -99
 	SYS_DIE = -98
 )
-
-func LookUpMeta(isolateID int) (int, string) {
-	err_status := ""
-	found_ele := false
-	dat, err := os.Open(fmt.Sprintf("%srunner/isolate_logs/%d/meta-log.txt", os.Getenv("DIR_GRADER_PATH"), isolateID))
-	if err != nil {
-		// panic(err)
-		return -99, "LOGS_PATH_NOT_EXIST"
-	}
-	contentScanner := bufio.NewScanner(dat)
-	contentScanner.Split(bufio.ScanLines)
-	for contentScanner.Scan() {
-		if strings.Contains(contentScanner.Text(), "status:") {
-			err_status = string(contentScanner.Text()[7:])
-			found_ele = true
-		}
-	}
-	dat.Close()
-
-	if found_ele {
-		if err_status == "TO" {
-			return TIMEOUT, "TIME_OUT"
-		} else if err_status == "SG" || err_status == "RE" {
-			return DIE, "DIE"
-		} else if err_status == "XX" {
-			return SYS_DIE, "Internal Error"
-		}
-	} else {
-		err_status = "OK"
-		return 1, err_status
-	}
-	return -98, "???"
-}
 
 func InitalIsolate(isolateID int) int {
 	// Isolate inital
@@ -69,24 +35,12 @@ func InitalIsolate(isolateID int) int {
 		return 1
 	}
 	if err_makeLog != nil {
-		// TODO: Change new text
 		fmt.Println("WRONG CONFIG! :: Please check your config!")
 		return 1
 	}
 
 	fmt.Printf("[Isolate] :: Isolate (ID:%d) has been initalized!\n", isolateID)
 	return 0
-}
-
-func VerifyResult(questID int, testcaseNo int, output string) bool {
-	// Lookup output file
-	dat, err := os.ReadFile(fmt.Sprintf("%sproblem/%d/%d.out", os.Getenv("DIR_GRADER_PATH"), questID, testcaseNo))
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("file out: ", string(dat))
-	// TODO: Work in progress for manage string
-	return string(dat) == output
 }
 
 func CompileCode(isolateID int, codeContent string) bool {
@@ -124,13 +78,18 @@ func CompileCode(isolateID int, codeContent string) bool {
 	return true
 }
 
-func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
+func RunnerIsolate(isolateID int, questID int) (bool, int, int, string, error) {
 	// Prepare the command
 	var note string = ""
 	var stats bool = true
 	var getScore int = 0
-	// TODO: Work in progress for change to custommize amount testcase
-	for i := 1; i <= 3; i++ {
+	prob_name, amount_tc, err := AutoloadProblem(questID)
+	if err != nil {
+		return false, 0, 0, "System Error!", errors.New("system error")
+	}
+
+	fmt.Printf("[JUDGING]: %s from box_id:%d has been call!\n", prob_name, isolateID)
+	for i := 1; i <= amount_tc; i++ {
 		cmd := exec.Command("isolate",
 			"--run",
 			fmt.Sprintf("--box-id=%d", isolateID),
@@ -160,11 +119,11 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
 			} else if status == SYS_DIE {
 				note = note + "!"
 			} else if txt == "LOGS_PATH_NOT_EXIST" {
-				return false, 0, 0, "Internal Server Error"
+				return false, 0, 0, "Internal Server Error", errors.New("internal Server Error")
 			}
 			stats = false
 		} else {
-			if VerifyResult(questID, i, stdout.String()) == true {
+			if VerifyResult(questID, i, stdout.String()) {
 				note = note + "P"
 				getScore++
 			} else {
@@ -174,5 +133,5 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string) {
 		}
 	}
 
-	return stats, getScore, 3, note
+	return stats, getScore, amount_tc, note, nil
 }

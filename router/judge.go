@@ -39,22 +39,27 @@ func JudgeService(router fiber.Router) {
 			return err
 		}
 
-		if p.CodeContent != "test" {
-			if !utility.CompileCode(p.BoxId, p.CodeContent) {
-				return c.JSON(ResultJudge{
-					Status: false,
-					Note:   "Complication Error",
-				})
-			}
+		if !utility.CompileCode(p.BoxId, p.CodeContent) {
+			return c.JSON(ResultJudge{
+				Status: false,
+				Note:   "Complication Error",
+			})
 		}
 
-		status, score, full_score, note := utility.RunnerIsolate(p.BoxId, p.QuestID)
-		return c.JSON(ResultJudge{
-			Status:    status,
-			Score:     score,
-			Fullscore: full_score,
-			Note:      note,
-		})
+		status, score, full_score, note, err := utility.RunnerIsolate(p.BoxId, p.QuestID)
+		if err != nil {
+			return c.JSON(ResultJudge{
+				Status:    status,
+				Score:     score,
+				Fullscore: full_score,
+				Note:      note,
+			})
+		} else {
+			return c.Status(500).JSON(ResultJudge{
+				Status: status,
+				Note:   note,
+			})
+		}
 	})
 
 	router.Post("/summon_isolate", func(c *fiber.Ctx) error {
@@ -70,7 +75,13 @@ func JudgeService(router fiber.Router) {
 		} else {
 			note = "CAN'T SUMMON ISOLATE"
 		}
-		return c.JSON(ResultIsolate{
+
+		status_http := 200
+		if status != 0 {
+			status_http = 500
+		}
+
+		return c.Status(status_http).JSON(ResultIsolate{
 			Status: status,
 			Note:   note,
 		})
