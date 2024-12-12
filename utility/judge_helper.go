@@ -56,7 +56,7 @@ func LookUpMeta(isolateID int) (int, string) {
 
 func VerifyResult(questID int, testcaseNo int, output string) bool {
 	// Lookup output file
-	dat, err := os.ReadFile(fmt.Sprintf("%sproblem/%d/%d.out", os.Getenv("DIR_GRADER_PATH"), questID, testcaseNo))
+	dat, err := os.ReadFile(fmt.Sprintf("%sproblem/%d/%d.sol", os.Getenv("DIR_GRADER_PATH"), questID, testcaseNo))
 	if err != nil {
 		panic(err)
 	}
