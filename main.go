@@ -38,5 +38,7 @@ func main() {
 	})
 
 	router.JudgeService(app.Group("/api/"))
+	// Manager
+	router.ProblemSetService(app.Group("/api/prob/"))
 	app.Listen(":8000")
 }
