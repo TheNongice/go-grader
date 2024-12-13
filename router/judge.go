@@ -50,14 +50,14 @@ func JudgeService(router fiber.Router) {
 		if err != nil {
 			return c.JSON(ResultJudge{
 				Status:    status,
-				Score:     score,
-				Fullscore: full_score,
 				Note:      note,
 			})
 		} else {
 			return c.Status(500).JSON(ResultJudge{
-				Status: status,
-				Note:   note,
+				Status:    status,
+				Score:     score,
+				Fullscore: full_score,
+				Note:      note,
 			})
 		}
 	})
