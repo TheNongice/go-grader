@@ -33,7 +33,7 @@ type BodyJudgeRunner struct {
 }
 
 func JudgeService(router fiber.Router) {
-	router.Get("/send", func(c *fiber.Ctx) error {
+	router.Post("/send", func(c *fiber.Ctx) error {
 		c.Accepts("application/json")
 		p := new(BodyJudgeRunner)
 		if err := c.BodyParser(&p); err != nil {
@@ -43,20 +43,20 @@ func JudgeService(router fiber.Router) {
 		status, msg := utility.CompileCode(p.BoxId, p.CodeContent)
 		if !status {
 			return c.JSON(ResultJudge{
-				Status: false,
-				Note:   "Complication Error",
+				Status:     false,
+				Note:       "Complication Error",
 				Additional: msg,
 			})
 		}
 
 		status, score, full_score, note, err := utility.RunnerIsolate(p.BoxId, p.QuestID)
 		if err != nil {
-			return c.JSON(ResultJudge{
+			return c.Status(200).JSON(ResultJudge{
 				Status: status,
 				Note:   note,
 			})
 		} else {
-			return c.Status(500).JSON(ResultJudge{
+			return c.Status(200).JSON(ResultJudge{
 				Status:    status,
 				Score:     score,
 				Fullscore: full_score,
