@@ -9,10 +9,11 @@ import (
 
 // Client Recieve Struct
 type ResultJudge struct {
-	Status    bool   `json:"is_accept"`
-	Score     int    `json:"score"`
-	Fullscore int    `json:"full_score"`
-	Note      string `json:"note"`
+	Status     bool   `json:"is_accept"`
+	Score      int    `json:"score"`
+	Fullscore  int    `json:"full_score"`
+	Note       string `json:"note"`
+	Additional string `json:"additional,omitempty"`
 }
 
 type ResultIsolate struct {
@@ -39,18 +40,20 @@ func JudgeService(router fiber.Router) {
 			return err
 		}
 
-		if !utility.CompileCode(p.BoxId, p.CodeContent) {
+		status, msg := utility.CompileCode(p.BoxId, p.CodeContent)
+		if !status {
 			return c.JSON(ResultJudge{
 				Status: false,
 				Note:   "Complication Error",
+				Additional: msg,
 			})
 		}
 
 		status, score, full_score, note, err := utility.RunnerIsolate(p.BoxId, p.QuestID)
 		if err != nil {
 			return c.JSON(ResultJudge{
-				Status:    status,
-				Note:      note,
+				Status: status,
+				Note:   note,
 			})
 		} else {
 			return c.Status(500).JSON(ResultJudge{

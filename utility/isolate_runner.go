@@ -43,7 +43,7 @@ func InitalIsolate(isolateID int) int {
 	return 0
 }
 
-func CompileCode(isolateID int, codeContent string) bool {
+func CompileCode(isolateID int, codeContent string) (bool, string) {
 	tempID := rand.IntN(100)
 	file, err := os.Create(fmt.Sprintf("./runner/temp_code/main%d.cpp", tempID))
 	file.Write([]byte(codeContent))
@@ -57,25 +57,28 @@ func CompileCode(isolateID int, codeContent string) bool {
 		"-o",
 		fmt.Sprintf("./runner/temp_code/output/out%d.a", tempID),
 	)
-	fmt.Println("Command is: ", cmd.Args)
-	err_compile := cmd.Run()
 
 	cmd_copy := exec.Command("cp",
 		fmt.Sprintf("./runner/temp_code/output/out%d.a", tempID),
 		fmt.Sprintf("%s/%d/box/out.a", os.Getenv("ISOLATE_PATH"), isolateID),
 	)
 
+	fmt.Println("Command is: ", cmd.Args)
+	var _, stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	err_compile := cmd.Run()
 	err_copy := cmd_copy.Run()
 
 	if err_compile != nil || err_copy != nil {
 		fmt.Println("Error! Can't compile")
 		defer file.Close()
-		return false
+		return false, stderr.String()
 	}
 
 	defer file.Close()
 
-	return true
+	return true, ""
 }
 
 func RunnerIsolate(isolateID int, questID int) (bool, int, int, string, error) {
@@ -119,7 +122,7 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string, error) {
 			} else if status == SYS_DIE {
 				note = note + "!"
 			} else if txt == "LOGS_PATH_NOT_EXIST" {
-				return false, 0, 0, "Internal Server Error", errors.New("internal Server Error")
+				return false, 0, 0, "Internal Server Error", errors.New("internal server error")
 			}
 			stats = false
 		} else {
