@@ -81,7 +81,7 @@ func CompileCode(isolateID int, codeContent string) (bool, string) {
 	return true, ""
 }
 
-func RunnerIsolate(isolateID int, questID int) (bool, int, int, string, error) {
+func RunnerIsolate(isolateID int, questID int, max_time float32, max_mem int) (bool, int, int, string, error) {
 	// Prepare the command
 	var note string = ""
 	var stats bool = true
@@ -96,8 +96,8 @@ func RunnerIsolate(isolateID int, questID int) (bool, int, int, string, error) {
 		cmd := exec.Command("isolate",
 			"--run",
 			fmt.Sprintf("--box-id=%d", isolateID),
-			"--time=1",
-			"--mem=65536",
+			fmt.Sprintf("--time=%v", max_time),
+			fmt.Sprintf("--mem=%v", max_mem),
 			"--processes=1",
 			fmt.Sprintf("--dir=%sproblem/%d/:rw", os.Getenv("DIR_GRADER_PATH"), questID),
 			fmt.Sprintf("--stdin=%sproblem/%d/%d.in", os.Getenv("DIR_GRADER_PATH"), questID, i),

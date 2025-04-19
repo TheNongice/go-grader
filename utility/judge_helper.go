@@ -16,10 +16,10 @@ const (
 )
 
 type TestcaseDesc struct {
-	ProblemTitle   string `json:"problem_title"`
-	MaxTime        int    `json:"max_time"`
-	MaxMemory      int    `json:"max_memory"`
-	AmountTestcase int    `json:"amount_testcase"`
+	ProblemTitle   string 	`json:"problem_title"`
+	MaxTime        float32	`json:"max_time"`
+	MaxMemory      int    	`json:"max_memory"`
+	AmountTestcase int    	`json:"amount_testcase"`
 }
 
 func LookUpMeta(isolateID int) (int, string) {
@@ -85,4 +85,18 @@ func AutoloadProblem(questID int) (string, int, error) {
 	}
 
 	return dat_json.ProblemTitle, dat_json.AmountTestcase, nil
+}
+
+func FullLoadProblem(questID int) (TestcaseDesc, error) {
+	dat, err := os.ReadFile(fmt.Sprintf("%sproblem/%d/desc.json", os.Getenv("DIR_GRADER_PATH"), questID))
+	if err != nil {
+		panic(err)
+	}
+	var dat_json TestcaseDesc
+	err = json.Unmarshal(dat, &dat_json)
+	if err != nil {
+		return TestcaseDesc{}, errors.New("can't access json file")
+	}
+
+	return dat_json, nil
 }
