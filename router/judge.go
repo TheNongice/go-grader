@@ -40,7 +40,7 @@ func JudgeService(router fiber.Router) {
 			return err
 		}
 
-		status, msg := utility.CompileCode(p.BoxId, p.CodeContent)
+		status, tempId, msg := utility.CompileCode("cpp", p.BoxId, p.CodeContent)
 		if !status {
 			return c.JSON(ResultJudge{
 				Status:     false,
@@ -49,7 +49,7 @@ func JudgeService(router fiber.Router) {
 			})
 		}
 		file_desc_load, _ := utility.FullLoadProblem(p.QuestID);
-		status, score, full_score, note, err := utility.RunnerIsolate(p.BoxId, p.QuestID, file_desc_load.MaxTime, file_desc_load.MaxMemory)
+		status, score, full_score, note, err := utility.RunnerIsolate(p.BoxId, tempId, p.QuestID, file_desc_load.MaxTime, file_desc_load.MaxMemory)
 		if err != nil {
 			return c.Status(200).JSON(ResultJudge{
 				Status: status,

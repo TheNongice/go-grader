@@ -7,6 +7,8 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+
+	compiler "github.com/TheNongice/go-grader/utility/compiler"
 )
 
 const (
@@ -43,45 +45,33 @@ func InitalIsolate(isolateID int) int {
 	return 0
 }
 
-func CompileCode(isolateID int, codeContent string) (bool, string) {
+func CompileCode(lang string, isolateID int, codeContent string) (bool, int, string) {
 	tempID := rand.IntN(100)
-	file, err := os.Create(fmt.Sprintf("./runner/temp_code/main%d.cpp", tempID))
+	fileName := ""
+	folderName := ""
+	if lang == "cpp" {
+		fileName = fmt.Sprintf("main%d.cpp", tempID)
+		folderName = "cpp"
+	} else if lang == "go" {
+		fileName = fmt.Sprintf("main%d.go", tempID)
+		folderName = "golang"
+	}
+
+	file, err := os.Create(fmt.Sprintf("./runner/temp_code/%s/%s", folderName, fileName))
 	file.Write([]byte(codeContent))
 
 	if err != nil {
 		fmt.Println("Error with create file!")
 	}
 
-	cmd := exec.Command("g++",
-		fmt.Sprintf("./runner/temp_code/main%d.cpp", tempID),
-		"-o",
-		fmt.Sprintf("./runner/temp_code/output/out%d.a", tempID),
-	)
-
-	cmd_copy := exec.Command("cp",
-		fmt.Sprintf("./runner/temp_code/output/out%d.a", tempID),
-		fmt.Sprintf("%s/%d/box/out.a", os.Getenv("ISOLATE_PATH"), isolateID),
-	)
-
-	fmt.Println("Command is: ", cmd.Args)
-	var _, stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	err_compile := cmd.Run()
-	err_copy := cmd_copy.Run()
-
-	if err_compile != nil || err_copy != nil {
-		fmt.Println("Error! Can't compile")
-		defer file.Close()
-		return false, stderr.String()
-	}
-
+	compiler := compiler.DefaultCompiler{}
+	status, err_msg := compiler.Compile(lang, tempID, isolateID)
 	defer file.Close()
 
-	return true, ""
+	return status, tempID, err_msg
 }
 
-func RunnerIsolate(isolateID int, questID int, max_time float32, max_mem int) (bool, int, int, string, error) {
+func RunnerIsolate(isolateID int, boxFile int, questID int, max_time float32, max_mem int) (bool, int, int, string, error) {
 	// Prepare the command
 	var note string = ""
 	var stats bool = true
@@ -102,7 +92,7 @@ func RunnerIsolate(isolateID int, questID int, max_time float32, max_mem int) (b
 			fmt.Sprintf("--dir=%sproblem/%d/:rw", os.Getenv("DIR_GRADER_PATH"), questID),
 			fmt.Sprintf("--stdin=%sproblem/%d/%d.in", os.Getenv("DIR_GRADER_PATH"), questID, i),
 			fmt.Sprintf("--meta=%srunner/isolate_logs/%d/meta-log.txt", os.Getenv("DIR_GRADER_PATH"), isolateID),
-			"./out.a",
+			fmt.Sprintf("./out%d.a", boxFile),
 		)
 		
 		var stdout, stderr bytes.Buffer
