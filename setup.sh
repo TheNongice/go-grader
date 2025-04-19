@@ -24,6 +24,8 @@ mkdir runner/isolate_logs
 mkdir runner/temp_code
 mkdir runner/temp_problem
 mkdir runner/temp_code/output
+mkdir runner/temp_code/cpp
+mkdir runner/temp_code/cpp/output
 
 CURRENT_DIR=$(pwd)
 echo -e "\e[92m[WIZARD]\e[0m Now we're woking at: \e[92m$CURRENT_DIR\e[0m"
