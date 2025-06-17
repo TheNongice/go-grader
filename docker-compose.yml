@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  go-grader:
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./problem:/src/app/problem
+      - runner_data:/src/app/runner
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+      - NET_ADMIN
+      - MKNOD
+      
+volumes:
+  runner_data:

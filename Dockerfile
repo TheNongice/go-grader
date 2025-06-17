@@ -10,9 +10,15 @@ RUN git clone https://github.com/ioi/isolate.git
 WORKDIR /src/isolate
 RUN make install
 
-# Go's Service
 WORKDIR /src/app
-RUN git clone https://github.com/TheNongice/go-grader.git .
+# Go Service
+COPY main.go main.go
+COPY router router
+COPY go.mod go.mod
+COPY go.sum go.sum
+COPY utility utility
+RUN go mod tidy
+
 RUN mkdir problem \
     && mkdir runner \
     && mkdir runner/isolate_logs \
@@ -23,9 +29,11 @@ RUN mkdir problem \
     && mkdir runner/temp_code/cpp/output
 
 RUN echo "DIR_GRADER_PATH=/src/app/" >> .env \
-    && echo "ISOLATE_PATH=/usr/local/bin/isolate" >> .env
+    && echo "ISOLATE_PATH=/var/local/lib/isolate/" >> .env
 
-RUN go mod tidy
+VOLUME /src/app/problem
+
 RUN go build -o go-grader .
+
 EXPOSE 8000
 CMD ["/src/app/go-grader"]
