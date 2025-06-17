@@ -9,8 +9,9 @@ Currently, This system is in prototype for using to learn how to create automati
 - Auto judging the result from execute files.
 - Check walltime, runtime to decide time out. (Using [Isolate](https://github.com/ioi/isolate))
 - It can specific the wrong & correct answer.
+- [Future] Add problem with .zip file on RestfulAPI.
 
-# Setup
+# Manual Setup
 This program currently in alpha. I'm not make auto-install script untill it's in beta.
 (Manual Setup)
 1) Install GoLang (Version 1.23.x)
@@ -24,7 +25,7 @@ DIR_GRADER_PATH=/home/YOUR_USER/go_grader/
 4) You can create problem testcase following this method:
  - Make new directory as `./problem/<problem_id>/`
  - Make output and input file as:
-  - Input use `<number_testcase>.int`
+  - Input use `<number_testcase>.in`
   - Output use `<number_testcase>.out`
  - Make a description of problem as `desc.json` with these content:
 ```json
@@ -42,6 +43,24 @@ If you can't imagine what's you should to make them, You can use this picture as
 _Note: max_time and max_memory are used seconds and kilobytes (kB)_
 
 5) Let's start! *(with many bug!)*
+
+# Docker Setup
+1) Clone this repo with `git clone https://github.com/TheNongice/go-grader.git`
+2) Config requirement on `docker-compose.yml`
+3) Run it with `docker compose up -d`
+
+## Summary Commands
+1) If you want to run for demo run propose.
+```bash
+git clone https://github.com/TheNongice/go-grader.git
+docker compose up -d
+```
+2) If you want to run my modify something.
+```bash
+git clone https://github.com/TheNongice/go-grader.git
+nano docker-compose.yml
+docker compose up -d
+```
 
 # Cautions
 This programs is in testing. It support for Debian.
